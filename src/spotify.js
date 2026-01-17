@@ -51,17 +51,38 @@ export const loginWithSpotify = async () => {
 
 // Handle OAuth Callback
 export const handleCallback = async () => {
+    console.log('🔐 Spotify Callback: Starting token exchange...');
+
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
     const storedState = localStorage.getItem('spotify_auth_state');
     const codeVerifier = localStorage.getItem('spotify_code_verifier');
 
-    if (!code || state !== storedState) {
-        throw new Error('Invalid OAuth callback');
+    console.log('📋 Callback params:', {
+        hasCode: !!code,
+        hasState: !!state,
+        stateMatch: state === storedState,
+        hasVerifier: !!codeVerifier
+    });
+
+    if (!code) {
+        console.error('❌ No authorization code in callback');
+        throw new Error('No authorization code received');
+    }
+
+    if (state !== storedState) {
+        console.error('❌ State mismatch:', { received: state, stored: storedState });
+        throw new Error('Invalid state parameter - possible CSRF attack');
+    }
+
+    if (!codeVerifier) {
+        console.error('❌ No code verifier found in localStorage');
+        throw new Error('Missing code verifier');
     }
 
     // Exchange code for token
+    console.log('🔄 Exchanging code for access token...');
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
@@ -77,10 +98,14 @@ export const handleCallback = async () => {
     });
 
     if (!response.ok) {
-        throw new Error('Token exchange failed');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Token exchange failed:', response.status, errorData);
+        throw new Error(`Token exchange failed: ${errorData.error || response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('✅ Token received successfully');
+
     localStorage.setItem('spotify_access_token', data.access_token);
     localStorage.setItem('spotify_refresh_token', data.refresh_token);
     localStorage.setItem('spotify_token_expiry', Date.now() + data.expires_in * 1000);

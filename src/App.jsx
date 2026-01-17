@@ -27,6 +27,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [debugLog, setDebugLog] = useState([]);
   const [soulAnalysis, setSoulAnalysis] = useState(null);
+  const [spotifyError, setSpotifyError] = useState(null);
 
   // Audio Diagnostics State
   const [audioContextRunning, setAudioContextRunning] = useState(false);
@@ -48,7 +49,8 @@ function App() {
         setSoulAnalysis(analysis);
         setLoading(false);
       }).catch(err => {
-        console.error("Spotify Login Failed", err);
+        console.error("❌ Spotify Login Failed:", err);
+        setSpotifyError(err.message || 'Failed to connect to Spotify');
         setLoading(false);
       });
     }
@@ -255,6 +257,32 @@ function App() {
             </div>
           ) : (
             <div className="slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+              {spotifyError && (
+                <div style={{
+                  padding: '1rem 1.5rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '12px',
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  maxWidth: '400px'
+                }}>
+                  <strong>⚠️ Connection Failed:</strong> {spotifyError}
+                  <button
+                    onClick={() => setSpotifyError(null)}
+                    style={{
+                      marginLeft: '1rem',
+                      background: 'none',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      opacity: 0.7
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <button onClick={loginWithSpotify} className="btn-spotify">
                 <LogIn size={24} /> Connect with Spotify
               </button>
