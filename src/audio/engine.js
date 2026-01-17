@@ -139,6 +139,37 @@ const SAMPLES = {
     }
 };
 
+// 80s FUNK/DISCO PATTERNS (Billie Jean style)
+const FUNK_PATTERNS = {
+    // Iconic synth bass line (F#m key, Billie Jean-inspired)
+    SYNTH_BASS_GROOVE: [
+        { note: "F#2", time: "0:0:0", duration: "8n" },
+        { note: "F#2", time: "0:1:0", duration: "8n" },
+        { note: "E2", time: "0:2:0", duration: "8n" },
+        { note: "F#2", time: "0:3:0", duration: "8n" },
+        { note: "A2", time: "0:3:2", duration: "16n" }
+    ],
+
+    // Funk guitar rhythm (muted 16th notes)
+    FUNK_GUITAR_RHYTHM: [
+        { chord: true, time: "0:0:0", duration: "16n", velocity: 0.3 },
+        { chord: true, time: "0:0:2", duration: "16n", velocity: 0.5 },
+        { chord: true, time: "0:1:0", duration: "16n", velocity: 0.3 },
+        { chord: true, time: "0:1:2", duration: "16n", velocity: 0.5 },
+        { chord: true, time: "0:2:0", duration: "16n", velocity: 0.3 },
+        { chord: true, time: "0:2:2", duration: "16n", velocity: 0.5 },
+        { chord: true, time: "0:3:0", duration: "16n", velocity: 0.3 },
+        { chord: true, time: "0:3:2", duration: "16n", velocity: 0.5 }
+    ],
+
+    // Disco drum pattern (4-on-the-floor)
+    DISCO_DRUMS: {
+        kick: ["0:0:0", "0:1:0", "0:2:0", "0:3:0"], // Every beat
+        snare: ["0:1:0", "0:3:0"], // Backbeat
+        hihat: ["0:0:0", "0:0:2", "0:1:0", "0:1:2", "0:2:0", "0:2:2", "0:3:0", "0:3:2"] // 8th notes
+    }
+};
+
 class AudioEngine {
     constructor() {
         this.synths = {};
@@ -201,6 +232,15 @@ class AudioEngine {
         this.synths.classical_guitar = mkSampler(SAMPLES.classical_guitar);
         this.synths.electric_guitar = mkSampler(SAMPLES.electric_guitar).connect(new Tone.Distortion(0.4));
         this.synths.bass = mkSampler(SAMPLES.bass).connect(master);
+
+        // Synth Bass (80s Funk style)
+        this.synths.synth_bass = new Tone.MonoSynth({
+            oscillator: { type: "sawtooth" },
+            envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.1 },
+            filter: { Q: 3, type: "lowpass", rolloff: -24 },
+            filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2, baseFrequency: 200, octaves: 2.5 }
+        }).connect(master);
+
         this.synths.violin = mkSampler(SAMPLES.violin).connect(new Tone.Vibrato(5, 0.2));
         this.synths.cello = mkSampler(SAMPLES.cello).connect(new Tone.Vibrato(4, 0.2));
 
@@ -256,10 +296,10 @@ class AudioEngine {
             }
 
             // Rule 2: Bass always Support
-            if (inst === 'bass') role = 'SUPPORT';
+            if (inst === 'bass' || inst === 'synth_bass') role = 'SUPPORT';
 
             // Rule 3: Percussion always Rhythm
-            if (inst === 'jazz_drums') role = 'PERCUSSION';
+            if (inst === 'jazz_drums' || inst === 'congas' || inst === 'bongos') role = 'PERCUSSION';
 
             roles.push({ id: index, type: inst, role: role });
         });
@@ -270,11 +310,12 @@ class AudioEngine {
         const types = roles.map(r => r.type);
         const has = (t) => types.includes(t);
 
-        // Dynamic BPM based on instruments
+        // Dynamic BPM and Mode based on instruments
+        if (has('synth_bass')) return { name: 'FUNK', bpm: 117 }; // Billie Jean tempo!
         if (has('baglama')) return { name: 'MEDITERRANEAN', bpm: 95 };
         if (has('electric_guitar')) return { name: 'ROCK', bpm: 130 };
         if (has('jazz_drums')) return { name: 'JAZZ', bpm: 120 };
-        return { name: 'FOLK', bpm: 100 }; // Default to Mediterranean/Folk
+        return { name: 'FOLK', bpm: 100 };
     }
 
     async updateSession(activeInstrumentTypes) {
@@ -357,13 +398,23 @@ class AudioEngine {
 
                 // Bass - Play root and fifth
                 if (p.role === 'SUPPORT' || (p.type === 'bass' && this.activeParticipants.length === 1)) {
-                    const root = Tone.Frequency(this.director.notes[0]).transpose(-12).toNote();
-                    this.play(p.type, root, "4n", time, 0.8);
+                    // FUNK MODE: Billie Jean-style groove
+                    if (p.type === 'synth_bass' && this.director.vibe === 'FUNK') {
+                        // Play the iconic funk bass pattern
+                        FUNK_PATTERNS.SYNTH_BASS_GROOVE.forEach(note => {
+                            const noteTime = time + Tone.Time(note.time).toSeconds();
+                            this.play(p.type, note.note, note.duration, noteTime, 0.9);
+                        });
+                    } else {
+                        // Standard bass line
+                        const root = Tone.Frequency(this.director.notes[0]).transpose(-12).toNote();
+                        this.play(p.type, root, "4n", time, 0.8);
 
-                    // Walking bass
-                    if (this.musicProfile.energy > 0.5 && this.director.notes[2]) {
-                        const fifth = Tone.Frequency(this.director.notes[2]).transpose(-12).toNote();
-                        this.play(p.type, fifth, "4n", time + Tone.Time("2n").toSeconds(), 0.7);
+                        // Walking bass
+                        if (this.musicProfile.energy > 0.5 && this.director.notes[2]) {
+                            const fifth = Tone.Frequency(this.director.notes[2]).transpose(-12).toNote();
+                            this.play(p.type, fifth, "4n", time + Tone.Time("2n").toSeconds(), 0.7);
+                        }
                     }
                 }
             });

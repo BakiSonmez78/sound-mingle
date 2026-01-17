@@ -10,6 +10,7 @@ const INSTRUMENTS_LIST = [
   { id: 'classical_guitar', name: 'Classical Guitar', icon: Music, color: '#f59e0b' },
   { id: 'electric_guitar', name: 'Electric Guitar', icon: Zap, color: '#3b82f6' },
   { id: 'bass', name: 'Bass Guitar', icon: Zap, color: '#ef4444' },
+  { id: 'synth_bass', name: 'Synth Bass (80s)', icon: Zap, color: '#ec4899' },
   { id: 'violin', name: 'Violin', icon: Activity, color: '#8b5cf6' },
   { id: 'cello', name: 'Cello', icon: Activity, color: '#6366f1' },
   { id: 'baglama', name: 'Bağlama', icon: Music, color: '#d97706' },
