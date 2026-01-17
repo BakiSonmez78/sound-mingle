@@ -164,15 +164,23 @@ export const analyzeSoulInstrument = async () => {
 
     if (!artists || !tracks) return null;
 
-    // Calculate average valence and energy from tracks
+    // 2. Fetch Audio Features for these tracks (Valence & Energy)
+    const trackIds = tracks.map(t => t.id).join(',');
+    const featuresResponse = await fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, {
+        headers: { 'Authorization': `Bearer ${await getAccessToken()}` }
+    });
+    const featuresData = await featuresResponse.json();
+    const features = featuresData.audio_features;
+
+    // Calculate averages
     let totalValence = 0;
     let totalEnergy = 0;
     let validTracks = 0;
 
-    tracks.forEach(track => {
-        if (track.valence !== undefined && track.energy !== undefined) {
-            totalValence += track.valence;
-            totalEnergy += track.energy;
+    features.forEach(f => {
+        if (f && f.valence !== undefined && f.energy !== undefined) {
+            totalValence += f.valence;
+            totalEnergy += f.energy;
             validTracks++;
         }
     });
