@@ -190,28 +190,45 @@ export const analyzeSoulInstrument = async () => {
     if (!artists || !tracks) return null;
 
     // 2. Fetch Audio Features for these tracks (Valence & Energy)
-    const trackIds = tracks.map(t => t.id).join(',');
-    const featuresResponse = await fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, {
-        headers: { 'Authorization': `Bearer ${await getAccessToken()}` }
-    });
-    const featuresData = await featuresResponse.json();
-    const features = featuresData.audio_features;
+    let avgValence = 0.5; // Default fallback
+    let avgEnergy = 0.5;  // Default fallback
 
-    // Calculate averages
-    let totalValence = 0;
-    let totalEnergy = 0;
-    let validTracks = 0;
+    try {
+        const trackIds = tracks.map(t => t.id).join(',');
+        const featuresResponse = await fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, {
+            headers: { 'Authorization': `Bearer ${await getAccessToken()}` }
+        });
 
-    features.forEach(f => {
-        if (f && f.valence !== undefined && f.energy !== undefined) {
-            totalValence += f.valence;
-            totalEnergy += f.energy;
-            validTracks++;
+        if (featuresResponse.ok) {
+            const featuresData = await featuresResponse.json();
+            const features = featuresData.audio_features;
+
+            // Calculate averages
+            let totalValence = 0;
+            let totalEnergy = 0;
+            let validTracks = 0;
+
+            if (features && Array.isArray(features)) {
+                features.forEach(f => {
+                    if (f && f.valence !== undefined && f.energy !== undefined) {
+                        totalValence += f.valence;
+                        totalEnergy += f.energy;
+                        validTracks++;
+                    }
+                });
+
+                if (validTracks > 0) {
+                    avgValence = totalValence / validTracks;
+                    avgEnergy = totalEnergy / validTracks;
+                    console.log(`✅ Audio features analyzed: ${validTracks} tracks`);
+                }
+            }
+        } else {
+            console.warn(`⚠️ Audio features unavailable (${featuresResponse.status}), using defaults`);
         }
-    });
-
-    const avgValence = validTracks > 0 ? totalValence / validTracks : 0.5;
-    const avgEnergy = validTracks > 0 ? totalEnergy / validTracks : 0.5;
+    } catch (error) {
+        console.warn('⚠️ Failed to fetch audio features, using defaults:', error);
+    }
 
     console.log(`Music Profile: Valence=${avgValence.toFixed(2)} (${avgValence > 0.5 ? 'Happy' : 'Sad'}), Energy=${avgEnergy.toFixed(2)} (${avgEnergy > 0.6 ? 'High' : 'Low'})`);
 
