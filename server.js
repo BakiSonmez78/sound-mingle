@@ -2,9 +2,17 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
+
+// Serve static files from dist folder (production)
+app.use(express.static(join(__dirname, 'dist')));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -47,7 +55,12 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 3000;
+// Serve index.html for all routes (SPA)
+app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, 'dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-    console.log(`Socket.IO Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
