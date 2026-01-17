@@ -317,8 +317,15 @@ function App() {
                 <p style={{ fontSize: '0.875rem', opacity: 0.5, marginBottom: '1rem' }}>
                   Or quick start with:
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', maxWidth: '500px' }}>
-                  {INSTRUMENTS_LIST.slice(0, 4).map(inst => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', maxWidth: '600px' }}>
+                  {[
+                    INSTRUMENTS_LIST.find(i => i.id === 'classical_guitar'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'piano'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'saxophone'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'trumpet'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'violin'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'jazz_drums')
+                  ].filter(Boolean).map(inst => (
                     <button key={inst.id} onClick={() => {
                       setSoulAnalysis({ instrument: inst.id, topGenres: [], topArtists: [], topTracks: [], valence: 0.5, energy: 0.5 });
                     }} className="instrument-card" style={{ padding: '1rem', textAlign: 'center' }}>
