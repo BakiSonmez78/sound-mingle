@@ -1,29 +1,30 @@
 import * as Tone from 'tone';
 
-// --- ENSEMBLE DIRECTOR THEORY ---
+// --- ENSEMBLE DIRECTOR THEORY (Enhanced with HookTheory & AI) ---
 const THEORY = {
     SCALES: {
-        "PHRYGIAN_DOMINANT": ["A3", "Bb3", "C#4", "D4", "E4", "F4", "G4", "A4"], // Turkish/Vampire
-        "HARMONIC_MINOR": ["A3", "B3", "C4", "D4", "E4", "F4", "G#4", "A4"], // Neoclassical
-        "BLUES_HEX": ["E3", "G3", "A3", "Bb3", "B3", "D4", "E4"], // Rock Lead
-        "IONIAN": ["C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4"] // Happy Pop
+        "PHRYGIAN_DOMINANT": ["A3", "Bb3", "C#4", "D4", "E4", "F4", "G4", "A4"],
+        "HARMONIC_MINOR": ["A3", "B3", "C4", "D4", "E4", "F4", "G#4", "A4"],
+        "BLUES_HEX": ["E3", "G3", "A3", "Bb3", "B3", "D4", "E4"],
+        "IONIAN": ["C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4"],
+        "DORIAN": ["D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4"] // Jazzy
     },
+    // HookTheory: Probabilistic Chord Progressions (Markov Chain)
+    // Structure: Current Chord -> { Next Chord: Probability }
+    HOOK_THEORY_GRAPH: {
+        "I": { "V": 0.3, "vi": 0.25, "IV": 0.3, "iii": 0.1, "ii": 0.05 },
+        "ii": { "V": 0.8, "vi": 0.2 }, // ii -> V (Jazz standard)
+        "iii": { "vi": 0.7, "IV": 0.3 },
+        "IV": { "I": 0.4, "V": 0.4, "ii": 0.2 },
+        "V": { "I": 0.7, "vi": 0.2, "IV": 0.1 }, // V -> I (Perfect Cadence)
+        "vi": { "IV": 0.5, "V": 0.3, "iii": 0.2 }
+    },
+    // Progressions mapped to Roman Numerals
     PROGRESSIONS: {
-        "MEDITERRANEAN": [ // Andalusian Cadence (Am - G - F - E)
-            { root: "A3", type: "min", scale: "PHRYGIAN_DOMINANT", duration: "1m" },
-            { root: "G3", type: "maj", scale: "PHRYGIAN_DOMINANT", duration: "1m" },
-            { root: "F3", type: "maj", scale: "PHRYGIAN_DOMINANT", duration: "1m" },
-            { root: "E3", type: "maj", scale: "PHRYGIAN_DOMINANT", duration: "1m" }
-        ],
-        "TWIN_GUITARS": [ // Spanish Romance Style
-            { root: "E3", type: "min", scale: "HARMONIC_MINOR", duration: "2m" },
-            { root: "A3", type: "min", scale: "HARMONIC_MINOR", duration: "2m" }
-        ],
-        "JAZZ_STANDARD": [ // ii-V-I
-            { root: "D3", type: "min7", scale: "IONIAN", duration: "1m" },
-            { root: "G3", type: "dom7", scale: "IONIAN", duration: "1m" },
-            { root: "C3", type: "maj7", scale: "IONIAN", duration: "2m" }
-        ]
+        "MEDITERRANEAN": ["i", "VII", "VI", "V"], // i-VII-VI-V (Andalusian)
+        "POP_HIT": ["I", "V", "vi", "IV"], // The "Axis of Awesome"
+        "JAZZ_II_V_I": ["ii", "V", "I"],
+        "EMOTIONAL": ["vi", "IV", "I", "V"]
     }
 };
 
@@ -55,14 +56,36 @@ class AudioEngine {
             currentStep: null,
             scale: [],
             notes: [],
-            progressionIndex: 0
+            progressionIndex: 0,
+            currentChord: 'I' // HookTheory state
+        };
+
+        // AI COMPOSER
+        this.ai = {
+            rnn: null,
+            ready: false
         };
     }
 
     async init() {
         await Tone.start();
         if (Tone.context.state !== 'running') await Tone.context.resume();
-        console.log('🎵 Audio Engine 5.0 (Ensemble Director) Starting...');
+        console.log('🎵 Audio Engine 6.0 (AI Composer) Starting...');
+
+        // Initialize Magenta MusicRNN (Melody)
+        try {
+            if (window.mm) {
+                // Pre-trained model for melody
+                this.ai.rnn = new window.mm.MusicRNN('https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/melody_rnn');
+                await this.ai.rnn.initialize();
+                this.ai.ready = true;
+                console.log('🤖 Google Magenta AI Ready!');
+            } else {
+                console.warn('⚠️ Magenta.js not found, falling back to algorithmic composition.');
+            }
+        } catch (e) {
+            console.error('❌ Failed to load AI:', e);
+        }
 
         const master = new Tone.Limiter(-0.5).toDestination();
         const reverb = new Tone.Reverb({ decay: 4, wet: 0.3 }).connect(master);
@@ -165,17 +188,30 @@ class AudioEngine {
     startOrchestra(progressionSequence) {
         Tone.Transport.cancel();
 
-        // 1. CONDUCTOR (Global Harmony State)
-        const conductor = new Tone.Loop((time) => {
-            const currentVibeInfo = this.determineVibe(this.activeParticipants); // Get live progression
-            const prog = currentVibeInfo.prog;
+        // 1. CONDUCTOR (Global Harmony State & AI)
+        const conductor = new Tone.Loop(async (time) => { // Async loop for AI
+            // Determine global vibe (BPM sets here)
+            this.determineVibe(this.activeParticipants);
 
-            const step = prog[this.director.progressionIndex % prog.length];
-            this.director.currentStep = step;
-            this.director.scale = THEORY.SCALES[step.scale];
-            this.director.notes = this.getChordNotes(step.root, step.type);
+            // A. HookTheory: Smart Chord Selection
+            const nextChordRoman = this.generateNextChord();
+            const chordNotes = this.getRomanChordNotes(nextChordRoman);
 
-            this.director.progressionIndex++;
+            // Update Director State
+            this.director.currentStep = { root: chordNotes[0], type: 'maj' }; // Simplified step obj
+            this.director.notes = chordNotes;
+            this.director.scale = this.getEmotionalScale(); // Dynamic scale based on valence
+
+            // B. AI Melody Generation (Pre-fetch for next measure?)
+            // For real-time, we'll just generate based on current chord immediately
+            // Note: This might cause slight delay, but acceptable for demo
+            if (this.ai.ready && Math.random() > 0.4) {
+                const aiNotes = await this.generateAIMelody(chordNotes);
+                this.director.aiMelodyBuffer = aiNotes;
+            } else {
+                this.director.aiMelodyBuffer = []; // Fallback to scale improvisation
+            }
+
         }, "1m").start(0);
         this.loops.push(conductor);
 
@@ -186,56 +222,69 @@ class AudioEngine {
                 if (p.role === 'RHYTHM' && p.type === 'classical_guitar') {
                     // Strum on 1 and 3 (Quarter notes)
                     this.strum(p.type, this.director.notes, "4n", time, 0.7);
-                    this.strum(p.type, this.director.notes, "4n", time + Tone.Time("2n").toSeconds(), 0.6);
+                    // Light strum on offbeat?
+                    if (this.musicProfile.energy > 0.6) {
+                        this.strum(p.type, this.director.notes, "8n", time + Tone.Time("4n").toSeconds(), 0.5);
+                    }
                 }
 
                 // Bass Support
                 if (p.role === 'SUPPORT' && p.type === 'bass') {
-                    const root = Tone.Frequency(this.director.currentStep.root).transpose(-12).toNote();
+                    const root = Tone.Frequency(this.director.notes[0]).transpose(-12).toNote();
                     this.play(p.type, root, "4n", time, 0.9);
-                    // Simple octave on offbeat
-                    this.play(p.type, root, "8n", time + Tone.Time("8n").toSeconds() * 3, 0.6);
+                    // Walking bass logic?
+                    if (this.musicProfile.energy > 0.7) {
+                        const fifth = Tone.Frequency(this.director.notes[2]).transpose(-12).toNote();
+                        this.play(p.type, fifth, "4n", time + Tone.Time("2n").toSeconds(), 0.7);
+                    }
                 }
 
-                // Percussion
+                // Percussion - Strict Jazz
                 if (p.role === 'PERCUSSION') {
-                    this.synths.kick.triggerAttackRelease("C1", "4n", time);
-                    this.synths.ch.triggerAttackRelease("16n", time + 0.25);
+                    // Kick logic based on energy
+                    this.synths.kick.triggerAttackRelease("C1", "8n", time);
+                    if (this.musicProfile.energy > 0.8) {
+                        this.synths.kick.triggerAttackRelease("C1", "8n", time + Tone.Time("4n").toSeconds());
+                    }
                 }
             });
         }, "1m").start(0);
         this.loops.push(rhythmLoop);
 
-        // 3. SOLO SECTION (Melody & Arpeggios)
+        // 3. SOLO SECTION (Melody & AI)
         const leadLoop = new Tone.Loop((time) => {
-            this.activeParticipants.forEach(p => {
+            this.activeParticipants.forEach((p, index) => {
                 if (p.role === 'LEAD') {
-                    // Solo Logic: Pick notes from current Scale
-                    if (Math.random() > 0.3) {
-                        const scale = this.director.scale;
-                        const note = scale[Math.floor(Math.random() * scale.length)];
+                    const aiBuffer = this.director.aiMelodyBuffer || [];
 
-                        // Humanize timing
-                        const offset = Math.random() * 0.1;
-                        this.play(p.type, note, "8n", time + offset, 0.8);
-
-                        // If it's a Twin Guitar situation, do a little arpeggio run
-                        if (p.type === 'classical_guitar') {
-                            const n2 = scale[Math.floor(Math.random() * scale.length)];
-                            this.play(p.type, n2, "8n", time + Tone.Time("8n").toSeconds() + offset, 0.7);
+                    if (aiBuffer.length > 0 && index < aiBuffer.length) {
+                        // Play AI Generated Note
+                        const note = aiBuffer[index % aiBuffer.length];
+                        const duration = this.getNoteDuration();
+                        this.play(p.type, note, duration, time + (index * 0.25), 0.8);
+                    } else {
+                        // Fallback: Probabilistic Improvisation
+                        if (this.shouldPlayNote()) {
+                            const scale = this.director.scale || [];
+                            const note = scale[Math.floor(Math.random() * scale.length)];
+                            const duration = this.getNoteDuration();
+                            this.play(p.type, note, duration, time + (Math.random() * 0.5), 0.7);
                         }
                     }
                 }
             });
-        }, "4n").start(0);
+        }, "1m").start(0);
         this.loops.push(leadLoop);
 
-        Tone.Transport.start();
+        Tone.Transport.bpm.rampTo(70, 0.1);
         this.isPlaying = true;
     }
 
-    getChordNotes(root, type) {
-        const r = Tone.Frequency(root).toNote();
+    // --- HELPER METHODS ---
+
+    getChord(root, type) {
+        if (!root) return [];
+        const r = Tone.Frequency(root);
         let intervals = [0, 4, 7];
         if (type === 'min') intervals = [0, 3, 7];
         if (type === 'dim') intervals = [0, 3, 6];
@@ -276,7 +325,6 @@ class AudioEngine {
         // High energy = short notes (8n), Low energy = long notes (2n)
         return this.musicProfile.energy > 0.6 ? "8n" : "2n";
     }
-
     // Get scale based on valence (Happy = Major, Sad = Minor)
     getEmotionalScale() {
         if (this.musicProfile.valence > 0.5) {
@@ -287,6 +335,68 @@ class AudioEngine {
         } else {
             // Sad: Use Minor scales
             return THEORY.SCALES.HARMONIC_MINOR;
+        }
+    }
+
+    // --- HOOKTHEORY LOGIC ---
+    generateNextChord() {
+        const current = this.director.currentChord || 'I';
+        const transitions = THEORY.HOOK_THEORY_GRAPH[current];
+        if (!transitions) return 'I'; // Fallback to tonic
+
+        // Weighted random selection
+        const rand = Math.random();
+        let cumulative = 0;
+        for (const [chord, prob] of Object.entries(transitions)) {
+            cumulative += prob;
+            if (rand < cumulative) {
+                this.director.currentChord = chord;
+                return chord;
+            }
+        }
+        return 'I';
+    }
+
+    // New Helper: Convert Roman Numeral to Notes
+    getRomanChordNotes(roman, keyRoot = "C3") {
+        const scale = this.getEmotionalScale();
+        const degrees = { 'I': 0, 'ii': 1, 'iii': 2, 'IV': 3, 'V': 4, 'vi': 5, 'VII': 6, 'i': 0 };
+        const types = { 'I': 'maj', 'ii': 'min', 'iii': 'min', 'IV': 'maj', 'V': 'maj', 'vi': 'min', 'VII': 'dim', 'i': 'min' };
+
+        const degree = degrees[roman] || 0;
+        const type = types[roman] || 'maj';
+
+        // Find root note
+        // In a real app we'd map keyRoot to scale index, here we assume Key of A (Phrygian) or C (Ionian)
+        // Simplified: Just pick from the current active scale
+        const rootNote = scale[degree % scale.length];
+        return this.getChord(rootNote, type);
+    }
+
+    // --- MAGENTA AI MELODY ---
+    async generateAIMelody(chordNotes) {
+        if (!this.ai.ready) return chordNotes; // Fallback
+
+        // Seed sequence from current chord
+        const notes = chordNotes.map(n => ({
+            pitch: Tone.Frequency(n).toMidi(),
+            quantizedStartStep: 0,
+            quantizedEndStep: 4
+        }));
+
+        const seq = {
+            notes: notes,
+            totalQuantizedSteps: 4,
+            quantizationInfo: { stepsPerQuarter: 4 }
+        };
+
+        try {
+            // Ask AI for continuation
+            const result = await this.ai.rnn.continueSequence(seq, 20, 1.2); // 20 steps, 1.2 temp
+            return result.notes.map(n => Tone.Frequency(n.pitch, "midi").toNote());
+        } catch (e) {
+            console.warn('AI Gen Failed', e);
+            return chordNotes;
         }
     }
 }
