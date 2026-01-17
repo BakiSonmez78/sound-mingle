@@ -69,21 +69,24 @@ io.on('connection', (socket) => {
 
 // Serve index.html for all routes (SPA) - must be after socket.io setup
 // Serve index.html for all routes (SPA) - must be after socket.io setup
-app.use((req, res) => {
+// Explicit root handler to fail loudly if static files miss
+app.get('/', (req, res) => {
     const indexPath = join(__dirname, 'dist', 'index.html');
-    if (!fs.existsSync(indexPath)) {
-        return res.status(500).send(`
-            <h1>🚀 Deployment Error</h1>
-            <p>The frontend build (dist/index.html) was not found on the server.</p>
-            <p><strong>Possible reasons:</strong></p>
-            <ul>
-                <li>The build process failed on Render.</li>
-                <li>The "vite" package was not installed (fixed now).</li>
-            </ul>
-            <p><em>Please check Render logs for build errors.</em></p>
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(500).send(`
+            <html>
+                <body style="font-family: sans-serif; padding: 2rem; background: #1a1a1a; color: #fff;">
+                    <h1>⚠️ SoundMingle Deployment Status</h1>
+                    <p><strong>Status:</strong> Server is running, but Frontend (Build) is missing.</p>
+                    <p>This means 'vite build' failed or didn't run on Render.</p>
+                    <hr style="border-color: #333;">
+                    <p><em>Attempting to debug deployment...</em></p>
+                </body>
+            </html>
         `);
     }
-    res.sendFile(indexPath);
 });
 
 const PORT = process.env.PORT || 3000;
