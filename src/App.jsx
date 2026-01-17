@@ -131,9 +131,10 @@ function App() {
   useEffect(() => {
     if (!started) return;
     const interval = setInterval(() => {
+      // ONLY send OWN instrument to audio engine
+      // Other users' instruments are heard through their own browsers
       const allInst = [
-        { type: myInstrument.id },
-        ...others.map(u => ({ type: u.instrument }))
+        { type: myInstrument.id }
       ];
       audioEngine.updateSession(allInst);
 
