@@ -70,7 +70,8 @@ io.on('connection', (socket) => {
 // Serve index.html for all routes (SPA) - must be after socket.io setup
 // Serve index.html for all routes (SPA) - must be after socket.io setup
 // Explicit root handler to fail loudly if static files miss
-app.get('/', (req, res) => {
+// Use '*' to catch ALL routes (e.g., /callback, /dashboard) and serve index.html
+app.get('*', (req, res) => {
     const indexPath = join(__dirname, 'dist', 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
@@ -79,10 +80,9 @@ app.get('/', (req, res) => {
             <html>
                 <body style="font-family: sans-serif; padding: 2rem; background: #1a1a1a; color: #fff;">
                     <h1>⚠️ SoundMingle Deployment Status</h1>
-                    <p><strong>Status:</strong> Server is running, but Frontend (Build) is missing.</p>
-                    <p>This means 'vite build' failed or didn't run on Render.</p>
+                    <p><strong>Status:</strong> Server is running, but Frontend (Dist) is missing.</p>
+                    <p>Route requested: ${req.path}</p>
                     <hr style="border-color: #333;">
-                    <p><em>Attempting to debug deployment...</em></p>
                 </body>
             </html>
         `);
