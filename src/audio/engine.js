@@ -122,6 +122,20 @@ const SAMPLES = {
             "E3": "E3.mp3", "E4": "E4.mp3"
         },
         baseUrl: "https://tonejs.github.io/audio/casio/"
+    },
+
+    // Percussion (using drum samples)
+    congas: {
+        urls: {
+            "G3": "G3.mp3", "A3": "A3.mp3", "C4": "C4.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/drum-samples/breakbeat8/"
+    },
+    bongos: {
+        urls: {
+            "F3": "F3.mp3", "G3": "G3.mp3", "A3": "A3.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/drum-samples/breakbeat8/"
     }
 };
 
@@ -203,6 +217,10 @@ class AudioEngine {
         this.synths.trombone = mkSampler(SAMPLES.trombone);
         this.synths.french_horn = mkSampler(SAMPLES.french_horn);
 
+        // Percussion
+        this.synths.congas = mkSampler(SAMPLES.congas);
+        this.synths.bongos = mkSampler(SAMPLES.bongos);
+
         // Synth Fallbacks
         this.synths.baglama = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1 } }).connect(new Tone.PingPongDelay("8n", 0.3).connect(reverb));
         this.synths.kick = new Tone.MembraneSynth().connect(master);
@@ -278,82 +296,109 @@ class AudioEngine {
 
     startOrchestra() {
         Tone.Transport.cancel();
+        this.loops.forEach(l => l.dispose());
+        this.loops = [];
 
-        // 1. CONDUCTOR LOOP (Harmony & AI)
-        const conductor = new Tone.Loop(async (time) => { // Async loop for AI
-            // A. Smart Chord Progression (HookTheory)
+        console.log('🎼 Orchestra starting with:', this.activeParticipants.map(p => `${p.type}(${p.role})`));
+
+        // 1. CONDUCTOR LOOP (Chord Changes every 4 measures)
+        const conductor = new Tone.Loop(async (time) => {
             const nextChordRoman = this.generateNextChord();
-
-            // B. Tonal.js Harmony Engine
-            // Calculate actual notes from Roman Numeral + Dynamic Scale
             const chordNotes = this.getRomanChordNotes(nextChordRoman);
 
-            this.director.notes = chordNotes; // Current active chord tones
-            this.director.scale = this.getEmotionalScale(); // Current active scale for soloists
+            this.director.notes = chordNotes;
+            this.director.scale = this.getEmotionalScale();
 
-            // C. AI Melody Prefetch
-            if (this.ai.ready && Math.random() < this.musicProfile.energy) {
+            // AI Melody Prefetch
+            if (this.ai.ready && Math.random() < this.musicProfile.energy * 0.5) {
                 const aiNotes = await this.generateAIMelody(chordNotes);
                 this.director.aiMelodyBuffer = aiNotes;
-            } else {
-                this.director.aiMelodyBuffer = [];
             }
-        }, "1m").start(0);
+        }, "4m").start(0); // Change chord every 4 measures
         this.loops.push(conductor);
 
-        // 2. RHYTHM LOOP (Euclidean Patterns)
-        const rhythmLoop = new Tone.Loop((time) => {
+        // 2. PERCUSSION LOOP (Drums play on every beat)
+        const drumLoop = new Tone.Loop((time) => {
             this.activeParticipants.forEach(p => {
-                if (p.role === 'RHYTHM') {
-                    // Dynamic Strumming based on Energy
-                    const subdiv = this.musicProfile.energy > 0.6 ? "8n" : "4n";
-                    this.strum(p.type, this.director.notes, subdiv, time, 0.6);
-                }
-                if (p.role === 'SUPPORT' && p.type === 'bass') {
-                    // Root note on 1, Fifth on 3
-                    const root = Tone.Frequency(this.director.notes[0]).transpose(-12).toNote();
-                    this.play(p.type, root, "4n", time, 0.8);
-                    if (this.musicProfile.energy > 0.5) {
-                        const fifth = Tone.Frequency(this.director.notes[2]).transpose(-12).toNote();
-                        this.play(p.type, fifth, "4n", time + Tone.Time("2n").toSeconds(), 0.7);
-                    }
-                }
                 if (p.role === 'PERCUSSION') {
-                    // Euclidean Kick: 4 hits in 16 steps (House) or random
-                    this.synths.kick.triggerAttackRelease("C1", "8n", time);
-                    if (this.musicProfile.energy > 0.8) {
-                        this.synths.kick.triggerAttackRelease("C1", "8n", time + Tone.Time("4n").toSeconds());
+                    // Kick on 1 and 3
+                    this.synths.kick.triggerAttackRelease("C1", "8n", time, 0.8);
+
+                    // Hi-hat on every beat
+                    if (this.synths.snare) {
+                        this.synths.snare.triggerAttackRelease("8n", time, 0.3);
                     }
-                }
-            });
-        }, "1m").start(0);
-        this.loops.push(rhythmLoop);
 
-        // 3. LEAD LOOP (Melody)
-        const leadLoop = new Tone.Loop((time) => {
-            this.activeParticipants.forEach((p, index) => {
-                if (p.role === 'LEAD' || p.role === 'SOLO') {
-                    const aiBuffer = this.director.aiMelodyBuffer || [];
-
-                    if (aiBuffer.length > 0 && index < aiBuffer.length) {
-                        // AI Melody
-                        const note = aiBuffer[index % aiBuffer.length];
-                        this.play(p.type, note, "8n", time + (index * 0.25), 0.8);
-                    } else {
-                        // Tonal.js Smart Improvisation
-                        // Pick random note from CURRENT SCALE (guaranteed to sound good)
-                        if (Math.random() < this.musicProfile.energy) {
-                            const scale = this.director.scale;
-                            // Ensure scale exists, fallback to Pentatonic
-                            const safeScale = scale && scale.length > 0 ? scale : ["C4", "D4", "E4", "G4", "A4"];
-                            const note = safeScale[Math.floor(Math.random() * safeScale.length)];
-                            this.play(p.type, note, "8n", time + (Math.random() * 0.5), 0.7);
+                    // Snare on 2 and 4 (backbeat)
+                    const beatInMeasure = (Tone.Transport.ticks / Tone.Transport.PPQ) % 4;
+                    if (beatInMeasure === 1 || beatInMeasure === 3) {
+                        if (this.synths.snare) {
+                            this.synths.snare.triggerAttackRelease("8n", time, 0.6);
                         }
                     }
                 }
             });
-        }, "1m").start(0);
+        }, "4n").start(0); // Every quarter note (beat)
+        this.loops.push(drumLoop);
+
+        // 3. RHYTHM LOOP (Chords & Bass play every measure)
+        const rhythmLoop = new Tone.Loop((time) => {
+            this.activeParticipants.forEach(p => {
+                // Rhythm Guitar/Piano - Strum chords
+                if (p.role === 'RHYTHM' || (p.role === 'SOLO' && this.activeParticipants.length === 1)) {
+                    const subdiv = this.musicProfile.energy > 0.6 ? "8n" : "4n";
+                    this.strum(p.type, this.director.notes, subdiv, time, 0.6);
+
+                    // Add offbeat strum for energy
+                    if (this.musicProfile.energy > 0.7) {
+                        this.strum(p.type, this.director.notes, "8n", time + Tone.Time("4n").toSeconds(), 0.4);
+                    }
+                }
+
+                // Bass - Play root and fifth
+                if (p.role === 'SUPPORT' || (p.type === 'bass' && this.activeParticipants.length === 1)) {
+                    const root = Tone.Frequency(this.director.notes[0]).transpose(-12).toNote();
+                    this.play(p.type, root, "4n", time, 0.8);
+
+                    // Walking bass
+                    if (this.musicProfile.energy > 0.5 && this.director.notes[2]) {
+                        const fifth = Tone.Frequency(this.director.notes[2]).transpose(-12).toNote();
+                        this.play(p.type, fifth, "4n", time + Tone.Time("2n").toSeconds(), 0.7);
+                    }
+                }
+            });
+        }, "1n").start(0); // Every whole note (measure)
+        this.loops.push(rhythmLoop);
+
+        // 4. LEAD LOOP (Melody/Solo plays frequently)
+        const leadLoop = new Tone.Loop((time) => {
+            this.activeParticipants.forEach((p, index) => {
+                if (p.role === 'LEAD') {
+                    const aiBuffer = this.director.aiMelodyBuffer || [];
+
+                    if (aiBuffer.length > 0) {
+                        // AI Melody
+                        const note = aiBuffer[index % aiBuffer.length];
+                        this.play(p.type, note, "8n", time + (index * 0.1), 0.8);
+                    } else {
+                        // Improvisation from scale
+                        if (Math.random() < this.musicProfile.energy) {
+                            const scale = this.director.scale;
+                            const safeScale = scale && scale.length > 0 ? scale : ["C4", "D4", "E4", "G4", "A4"];
+                            const note = safeScale[Math.floor(Math.random() * safeScale.length)];
+                            this.play(p.type, note, "8n", time, 0.7);
+                        }
+                    }
+                }
+            });
+        }, "4n").start(0); // Every quarter note for melodic flow
         this.loops.push(leadLoop);
+
+        // Start Transport
+        if (Tone.Transport.state !== 'started') {
+            Tone.Transport.start();
+            console.log('✅ Transport started');
+        }
 
         this.isPlaying = true;
     }

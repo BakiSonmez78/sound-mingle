@@ -29,6 +29,8 @@ const INSTRUMENTS_LIST = [
 
   // Percussion
   { id: 'jazz_drums', name: 'Jazz Drums', icon: Disc, color: '#10b981' },
+  { id: 'congas', name: 'Congas', icon: Disc, color: '#f59e0b' },
+  { id: 'bongos', name: 'Bongos', icon: Disc, color: '#eab308' },
 ];
 
 const socket = io('/', { autoConnect: false });
