@@ -6,13 +6,29 @@ import { audioEngine } from './audio/engine';
 import { loginWithSpotify, handleCallback, analyzeSoulInstrument, isLoggedIn } from './spotify';
 
 const INSTRUMENTS_LIST = [
+  // Strings
   { id: 'classical_guitar', name: 'Classical Guitar', icon: Music, color: '#f59e0b' },
-  { id: 'baglama', name: 'Bağlama', icon: Music, color: '#d97706' },
-  { id: 'bass', name: 'Bass Guitar', icon: Zap, color: '#ef4444' },
   { id: 'electric_guitar', name: 'Electric Guitar', icon: Zap, color: '#3b82f6' },
-  { id: 'jazz_drums', name: 'Jazz Drums', icon: Disc, color: '#10b981' },
+  { id: 'bass', name: 'Bass Guitar', icon: Zap, color: '#ef4444' },
   { id: 'violin', name: 'Violin', icon: Activity, color: '#8b5cf6' },
   { id: 'cello', name: 'Cello', icon: Activity, color: '#6366f1' },
+  { id: 'baglama', name: 'Bağlama', icon: Music, color: '#d97706' },
+
+  // Piano
+  { id: 'piano', name: 'Piano', icon: Music, color: '#ec4899' },
+
+  // Woodwinds
+  { id: 'flute', name: 'Flute', icon: Activity, color: '#06b6d4' },
+  { id: 'saxophone', name: 'Saxophone', icon: Activity, color: '#eab308' },
+  { id: 'clarinet', name: 'Clarinet', icon: Activity, color: '#84cc16' },
+
+  // Brass
+  { id: 'trumpet', name: 'Trumpet', icon: Zap, color: '#f97316' },
+  { id: 'trombone', name: 'Trombone', icon: Zap, color: '#a855f7' },
+  { id: 'french_horn', name: 'French Horn', icon: Zap, color: '#14b8a6' },
+
+  // Percussion
+  { id: 'jazz_drums', name: 'Jazz Drums', icon: Disc, color: '#10b981' },
 ];
 
 const socket = io('/', { autoConnect: false });

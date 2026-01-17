@@ -252,8 +252,15 @@ export const analyzeSoulInstrument = async () => {
         // Classical / Orchestral
         classical: 'violin',
         opera: 'cello',
-        orchestra: 'cello',
+        orchestra: 'french_horn',
         baroque: 'violin',
+        symphony: 'cello',
+
+        // Piano / Keys
+        piano: 'piano',
+        'classical piano': 'piano',
+        'jazz piano': 'piano',
+        romantic: 'piano',
 
         // Turkish / Anatolian
         turkish: 'baglama',
@@ -269,11 +276,23 @@ export const analyzeSoulInstrument = async () => {
         punk: 'electric_guitar',
         grunge: 'electric_guitar',
 
-        // Jazz / Blues
-        jazz: 'bass',
-        blues: 'bass',
+        // Jazz / Blues / Funk
+        jazz: 'saxophone',
+        'smooth jazz': 'saxophone',
+        blues: 'trumpet',
         soul: 'bass',
         funk: 'bass',
+        'acid jazz': 'saxophone',
+
+        // Brass / Big Band
+        'big band': 'trumpet',
+        swing: 'trombone',
+        dixieland: 'trumpet',
+
+        // Woodwinds
+        'new age': 'flute',
+        ambient: 'flute',
+        meditation: 'flute',
 
         // Folk / Acoustic
         folk: 'classical_guitar',
@@ -282,20 +301,25 @@ export const analyzeSoulInstrument = async () => {
         indie: 'classical_guitar',
         'indie folk': 'classical_guitar',
 
-        // Pop / Electronic (neutral - defaults to drums)
-        pop: 'jazz_drums',
+        // Pop / Electronic (neutral - defaults to piano or drums)
+        pop: 'piano',
         dance: 'jazz_drums',
         electronic: 'jazz_drums',
         edm: 'jazz_drums',
+        house: 'jazz_drums',
 
         // Latin / Flamenco
         flamenco: 'classical_guitar',
-        latin: 'classical_guitar',
+        latin: 'trumpet',
         bossa: 'classical_guitar',
+        salsa: 'trumpet',
+        tango: 'violin',
 
         // World
         world: 'baglama',
-        ethnic: 'baglama'
+        ethnic: 'baglama',
+        celtic: 'flute',
+        irish: 'flute'
     };
 
     // Find matching instrument

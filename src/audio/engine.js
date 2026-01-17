@@ -15,11 +15,114 @@ const THEORY = {
 };
 
 const SAMPLES = {
-    classical_guitar: { urls: { "A3": "A3.mp3", "A4": "A4.mp3", "E3": "E3.mp3", "E4": "E4.mp3" }, baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/guitar-acoustic/" },
-    electric_guitar: { urls: { "A3": "A3.mp3", "E4": "E4.mp3" }, baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/guitar-electric/" },
-    bass: { urls: { "A2": "A2.mp3", "E2": "E2.mp3" }, baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/bass-electric/" },
-    violin: { urls: { "A4": "A4.mp3", "E4": "E4.mp3" }, baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/violin/" },
-    cello: { urls: { "A3": "A3.mp3", "C3": "C3.mp3" }, baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/cello/" }
+    // Strings
+    classical_guitar: {
+        urls: {
+            "A2": "A2.mp3", "A3": "A3.mp3", "A4": "A4.mp3",
+            "C3": "C3.mp3", "C4": "C4.mp3", "C5": "C5.mp3",
+            "D#4": "Ds4.mp3", "E3": "E3.mp3", "E4": "E4.mp3",
+            "F#3": "Fs3.mp3", "F#4": "Fs4.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+    electric_guitar: {
+        urls: {
+            "A3": "A3.mp3", "C4": "C4.mp3", "E4": "E4.mp3",
+            "F#3": "Fs3.mp3", "F#4": "Fs4.mp3"
+        },
+        baseUrl: "https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/samples/guitar-electric/"
+    },
+    bass: {
+        urls: {
+            "A#1": "As1.mp3", "A#2": "As2.mp3",
+            "C#1": "Cs1.mp3", "C#2": "Cs2.mp3",
+            "E1": "E1.mp3", "E2": "E2.mp3",
+            "G1": "G1.mp3", "G2": "G2.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+    violin: {
+        urls: {
+            "A3": "A3.mp3", "A4": "A4.mp3", "A5": "A5.mp3",
+            "C4": "C4.mp3", "C5": "C5.mp3", "C6": "C6.mp3",
+            "E4": "E4.mp3", "E5": "E5.mp3",
+            "G4": "G4.mp3", "G5": "G5.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+    cello: {
+        urls: {
+            "A2": "A2.mp3", "A3": "A3.mp3",
+            "C2": "C2.mp3", "C3": "C3.mp3", "C4": "C4.mp3",
+            "E2": "E2.mp3", "E3": "E3.mp3",
+            "G2": "G2.mp3", "G3": "G3.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+
+    // Piano
+    piano: {
+        urls: {
+            "A0": "A0.mp3", "A1": "A1.mp3", "A2": "A2.mp3", "A3": "A3.mp3", "A4": "A4.mp3", "A5": "A5.mp3", "A6": "A6.mp3", "A7": "A7.mp3",
+            "C1": "C1.mp3", "C2": "C2.mp3", "C3": "C3.mp3", "C4": "C4.mp3", "C5": "C5.mp3", "C6": "C6.mp3", "C7": "C7.mp3", "C8": "C8.mp3",
+            "D#1": "Ds1.mp3", "D#2": "Ds2.mp3", "D#3": "Ds3.mp3", "D#4": "Ds4.mp3", "D#5": "Ds5.mp3", "D#6": "Ds6.mp3", "D#7": "Ds7.mp3",
+            "F#1": "Fs1.mp3", "F#2": "Fs2.mp3", "F#3": "Fs3.mp3", "F#4": "Fs4.mp3", "F#5": "Fs5.mp3", "F#6": "Fs6.mp3", "F#7": "Fs7.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+
+    // Woodwinds
+    flute: {
+        urls: {
+            "A4": "A4.mp3", "A5": "A5.mp3", "A6": "A6.mp3",
+            "C4": "C4.mp3", "C5": "C5.mp3", "C6": "C6.mp3",
+            "E4": "E4.mp3", "E5": "E5.mp3", "E6": "E6.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/casio/"
+    },
+    saxophone: {
+        urls: {
+            "A3": "A3.mp3", "A4": "A4.mp3",
+            "C3": "C3.mp3", "C4": "C4.mp3", "C5": "C5.mp3",
+            "D#3": "Ds3.mp3", "D#4": "Ds4.mp3",
+            "F#3": "Fs3.mp3", "F#4": "Fs4.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/salamander/"
+    },
+    clarinet: {
+        urls: {
+            "A3": "A3.mp3", "A4": "A4.mp3", "A5": "A5.mp3",
+            "C3": "C3.mp3", "C4": "C4.mp3", "C5": "C5.mp3",
+            "E3": "E3.mp3", "E4": "E4.mp3", "E5": "E5.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/casio/"
+    },
+
+    // Brass
+    trumpet: {
+        urls: {
+            "A3": "A3.mp3", "A4": "A4.mp3", "A5": "A5.mp3",
+            "C3": "C3.mp3", "C4": "C4.mp3", "C5": "C5.mp3",
+            "E3": "E3.mp3", "E4": "E4.mp3", "E5": "E5.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/casio/"
+    },
+    trombone: {
+        urls: {
+            "A2": "A2.mp3", "A3": "A3.mp3", "A4": "A4.mp3",
+            "C2": "C2.mp3", "C3": "C3.mp3", "C4": "C4.mp3",
+            "E2": "E2.mp3", "E3": "E3.mp3", "E4": "E4.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/casio/"
+    },
+    french_horn: {
+        urls: {
+            "A2": "A2.mp3", "A3": "A3.mp3", "A4": "A4.mp3",
+            "C3": "C3.mp3", "C4": "C4.mp3",
+            "E3": "E3.mp3", "E4": "E4.mp3"
+        },
+        baseUrl: "https://tonejs.github.io/audio/casio/"
+    }
 };
 
 class AudioEngine {
@@ -80,11 +183,25 @@ class AudioEngine {
         // INSTANTIATION
         const mkSampler = (conf) => new Tone.Sampler({ urls: conf.urls, baseUrl: conf.baseUrl, onerror: () => console.warn('Sample fail') }).connect(reverb);
 
+        // Strings
         this.synths.classical_guitar = mkSampler(SAMPLES.classical_guitar);
         this.synths.electric_guitar = mkSampler(SAMPLES.electric_guitar).connect(new Tone.Distortion(0.4));
         this.synths.bass = mkSampler(SAMPLES.bass).connect(master);
         this.synths.violin = mkSampler(SAMPLES.violin).connect(new Tone.Vibrato(5, 0.2));
         this.synths.cello = mkSampler(SAMPLES.cello).connect(new Tone.Vibrato(4, 0.2));
+
+        // Piano
+        this.synths.piano = mkSampler(SAMPLES.piano);
+
+        // Woodwinds
+        this.synths.flute = mkSampler(SAMPLES.flute).connect(new Tone.Vibrato(3, 0.1));
+        this.synths.saxophone = mkSampler(SAMPLES.saxophone);
+        this.synths.clarinet = mkSampler(SAMPLES.clarinet);
+
+        // Brass
+        this.synths.trumpet = mkSampler(SAMPLES.trumpet);
+        this.synths.trombone = mkSampler(SAMPLES.trombone);
+        this.synths.french_horn = mkSampler(SAMPLES.french_horn);
 
         // Synth Fallbacks
         this.synths.baglama = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1 } }).connect(new Tone.PingPongDelay("8n", 0.3).connect(reverb));
