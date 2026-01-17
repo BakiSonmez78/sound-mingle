@@ -43,6 +43,12 @@ class AudioEngine {
         this.activeParticipants = []; // Stores { id, instrument, role }
         this.loading = true;
 
+        // MUSIC PROFILE (from Spotify)
+        this.musicProfile = {
+            valence: 0.5, // 0-1: Sad to Happy
+            energy: 0.5   // 0-1: Calm to Energetic
+        };
+
         // ORCHESTRA STATE
         this.director = {
             vibe: 'MEDITERRANEAN',
@@ -250,6 +256,38 @@ class AudioEngine {
         notes.forEach((note, i) => {
             try { this.synths[inst].triggerAttackRelease(note, duration, time + i * spread, gain); } catch (e) { }
         });
+    }
+
+    // Set music profile from Spotify analysis
+    setMusicProfile(valence, energy) {
+        this.musicProfile.valence = valence;
+        this.musicProfile.energy = energy;
+        console.log(`🎭 Music Profile Updated: Valence=${valence.toFixed(2)}, Energy=${energy.toFixed(2)}`);
+    }
+
+    // Probabilistic note playing (Gemini's suggestion)
+    shouldPlayNote() {
+        // Lower energy = more silence (sparse notes)
+        return Math.random() < this.musicProfile.energy;
+    }
+
+    // Dynamic note duration based on energy
+    getNoteDuration() {
+        // High energy = short notes (8n), Low energy = long notes (2n)
+        return this.musicProfile.energy > 0.6 ? "8n" : "2n";
+    }
+
+    // Get scale based on valence (Happy = Major, Sad = Minor)
+    getEmotionalScale() {
+        if (this.musicProfile.valence > 0.5) {
+            // Happy: Use Major scales
+            return this.director.vibe === 'MEDITERRANEAN' ?
+                THEORY.SCALES.PHRYGIAN_DOMINANT :
+                THEORY.SCALES.IONIAN;
+        } else {
+            // Sad: Use Minor scales
+            return THEORY.SCALES.HARMONIC_MINOR;
+        }
     }
 }
 

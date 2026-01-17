@@ -164,6 +164,24 @@ export const analyzeSoulInstrument = async () => {
 
     if (!artists || !tracks) return null;
 
+    // Calculate average valence and energy from tracks
+    let totalValence = 0;
+    let totalEnergy = 0;
+    let validTracks = 0;
+
+    tracks.forEach(track => {
+        if (track.valence !== undefined && track.energy !== undefined) {
+            totalValence += track.valence;
+            totalEnergy += track.energy;
+            validTracks++;
+        }
+    });
+
+    const avgValence = validTracks > 0 ? totalValence / validTracks : 0.5;
+    const avgEnergy = validTracks > 0 ? totalEnergy / validTracks : 0.5;
+
+    console.log(`Music Profile: Valence=${avgValence.toFixed(2)} (${avgValence > 0.5 ? 'Happy' : 'Sad'}), Energy=${avgEnergy.toFixed(2)} (${avgEnergy > 0.6 ? 'High' : 'Low'})`);
+
     // Collect all genres
     const genreCounts = {};
     artists.forEach(artist => {
@@ -250,6 +268,8 @@ export const analyzeSoulInstrument = async () => {
 
     return {
         instrument: soulInstrument,
+        valence: avgValence,
+        energy: avgEnergy,
         topGenres: sortedGenres.slice(0, 5),
         topArtists: artists.slice(0, 5).map(a => a.name),
         topTracks: tracks.slice(0, 5).map(t => t.name)
