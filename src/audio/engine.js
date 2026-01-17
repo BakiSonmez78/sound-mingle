@@ -150,16 +150,22 @@ const FUNK_PATTERNS = {
         { note: "A2", time: "0:3:2", duration: "16n" }
     ],
 
-    // Funk guitar rhythm (muted 16th notes)
+    // Funk guitar rhythm (muted 16th notes, F#m chord)
     FUNK_GUITAR_RHYTHM: [
-        { chord: true, time: "0:0:0", duration: "16n", velocity: 0.3 },
-        { chord: true, time: "0:0:2", duration: "16n", velocity: 0.5 },
-        { chord: true, time: "0:1:0", duration: "16n", velocity: 0.3 },
-        { chord: true, time: "0:1:2", duration: "16n", velocity: 0.5 },
-        { chord: true, time: "0:2:0", duration: "16n", velocity: 0.3 },
-        { chord: true, time: "0:2:2", duration: "16n", velocity: 0.5 },
-        { chord: true, time: "0:3:0", duration: "16n", velocity: 0.3 },
-        { chord: true, time: "0:3:2", duration: "16n", velocity: 0.5 }
+        { notes: ["F#3", "A3", "C#4"], time: "0:0:0", duration: "16n", velocity: 0.4 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:0:2", duration: "16n", velocity: 0.6 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:1:0", duration: "16n", velocity: 0.3 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:1:2", duration: "16n", velocity: 0.6 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:2:0", duration: "16n", velocity: 0.4 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:2:2", duration: "16n", velocity: 0.6 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:3:0", duration: "16n", velocity: 0.3 },
+        { notes: ["F#3", "A3", "C#4"], time: "0:3:2", duration: "16n", velocity: 0.6 }
+    ],
+
+    // Synth strings/piano chord progression (F#m tonality)
+    SYNTH_CHORDS: [
+        { notes: ["F#3", "A3", "C#4"], time: "0:0:0", duration: "2n" },  // F#m
+        { notes: ["E3", "G#3", "B3"], time: "0:2:0", duration: "2n" }    // E
     ],
 
     // Disco drum pattern (4-on-the-floor)
@@ -167,7 +173,13 @@ const FUNK_PATTERNS = {
         kick: ["0:0:0", "0:1:0", "0:2:0", "0:3:0"], // Every beat
         snare: ["0:1:0", "0:3:0"], // Backbeat
         hihat: ["0:0:0", "0:0:2", "0:1:0", "0:1:2", "0:2:0", "0:2:2", "0:3:0", "0:3:2"] // 8th notes
-    }
+    },
+
+    // Brass/synth stabs (accents)
+    BRASS_STABS: [
+        { notes: ["F#4", "A4"], time: "0:0:0", duration: "8n" },
+        { notes: ["E4", "G#4"], time: "0:2:0", duration: "8n" }
+    ]
 };
 
 class AudioEngine {
@@ -387,12 +399,33 @@ class AudioEngine {
             this.activeParticipants.forEach(p => {
                 // Rhythm Guitar/Piano - Strum chords
                 if (p.role === 'RHYTHM' || (p.role === 'SOLO' && this.activeParticipants.length === 1)) {
-                    const subdiv = this.musicProfile.energy > 0.6 ? "8n" : "4n";
-                    this.strum(p.type, this.director.notes, subdiv, time, 0.6);
+                    // FUNK MODE: 16th note funk rhythm
+                    if (this.director.vibe === 'FUNK' && (p.type === 'electric_guitar' || p.type === 'classical_guitar')) {
+                        FUNK_PATTERNS.FUNK_GUITAR_RHYTHM.forEach(pattern => {
+                            const noteTime = time + Tone.Time(pattern.time).toSeconds();
+                            pattern.notes.forEach(note => {
+                                this.play(p.type, note, pattern.duration, noteTime, pattern.velocity);
+                            });
+                        });
+                    }
+                    // FUNK MODE: Piano chords
+                    else if (this.director.vibe === 'FUNK' && p.type === 'piano') {
+                        FUNK_PATTERNS.SYNTH_CHORDS.forEach(pattern => {
+                            const noteTime = time + Tone.Time(pattern.time).toSeconds();
+                            pattern.notes.forEach(note => {
+                                this.play(p.type, note, pattern.duration, noteTime, 0.7);
+                            });
+                        });
+                    }
+                    // Standard mode
+                    else {
+                        const subdiv = this.musicProfile.energy > 0.6 ? "8n" : "4n";
+                        this.strum(p.type, this.director.notes, subdiv, time, 0.6);
 
-                    // Add offbeat strum for energy
-                    if (this.musicProfile.energy > 0.7) {
-                        this.strum(p.type, this.director.notes, "8n", time + Tone.Time("4n").toSeconds(), 0.4);
+                        // Add offbeat strum for energy
+                        if (this.musicProfile.energy > 0.7) {
+                            this.strum(p.type, this.director.notes, "8n", time + Tone.Time("4n").toSeconds(), 0.4);
+                        }
                     }
                 }
 
