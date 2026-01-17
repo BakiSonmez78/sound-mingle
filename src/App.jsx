@@ -173,137 +173,288 @@ function App() {
 
   if (!started) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-transparent backdrop-blur-md relative z-50">
-        <h1 className="text-6xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">
-          SoundMingle
-        </h1>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '2rem',
+        position: 'relative',
+        zIndex: 50
+      }}>
+        <div className="fade-in" style={{ textAlign: 'center', maxWidth: '600px' }}>
+          <h1 className="gradient-text" style={{
+            fontSize: 'clamp(3rem, 10vw, 6rem)',
+            fontWeight: 900,
+            marginBottom: '1rem',
+            letterSpacing: '-0.02em'
+          }}>
+            SoundMingle
+          </h1>
+          <p style={{
+            fontSize: '1.25rem',
+            opacity: 0.7,
+            marginBottom: '3rem',
+            fontWeight: 300
+          }}>
+            Your musical soul, harmonized with the world
+          </p>
 
-        {scanning ? (
-          <div className="flex flex-col items-center animate-in fade-in zoom-in py-12">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full border-4 border-blue-500 border-t-transparent animate-spin mb-4"></div>
-              <Bluetooth className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400 animate-pulse" size={32} />
+          {scanning ? (
+            <div className="slide-up" style={{ padding: '3rem 0' }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div className="spinner" style={{ margin: '0 auto 1.5rem' }}></div>
+                <Bluetooth style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  color: 'var(--primary)'
+                }} size={32} className="pulse-glow" />
+              </div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--primary)' }}>
+                Discovering your sound...
+              </h2>
             </div>
-            <h2 className="text-2xl font-bold text-blue-400 mb-2">Searching...</h2>
-          </div>
-        ) : loading ? (
-          <div className="animate-pulse text-2xl font-bold text-accent py-12">Loading Audio...</div>
-        ) : soulAnalysis ? (
-          <div className="glass-panel p-8 max-w-md w-full animate-in slide-in-from-bottom-10">
-            <h2 className="text-3xl font-black text-white mb-2 capitalize">
-              {INSTRUMENTS_LIST.find(i => i.id === soulAnalysis.instrument)?.name}
-            </h2>
-            <button onClick={handleStartWithSoul} className="w-full py-4 bg-green-500 text-black font-bold rounded-xl text-lg mt-4 flex items-center justify-center gap-2">
-              <Radio size={20} /> Broadcast My Soul
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <button onClick={loginWithSpotify} className="flex items-center gap-3 px-8 py-4 bg-[#1DB954] text-black font-bold rounded-full text-xl hover:scale-105 transition shadow-xl">
-              <LogIn size={24} /> Connect Spotify
-            </button>
-            <div className="grid grid-cols-3 gap-2 mt-8 opacity-50">
-              {INSTRUMENTS_LIST.map(inst => (
-                <button key={inst.id} onClick={() => {
-                  setSoulAnalysis({ instrument: inst.id, topGenres: [], topArtists: [], topTracks: [] });
-                }} className="p-2 border border-white/10 rounded text-xs">{inst.name}</button>
-              ))}
+          ) : loading ? (
+            <div className="spinner" style={{ margin: '3rem auto' }}></div>
+          ) : soulAnalysis ? (
+            <div className="glass-panel slide-up" style={{ padding: '2.5rem', maxWidth: '400px', margin: '0 auto' }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                margin: '0 auto 1.5rem',
+                background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }} className="pulse-glow">
+                <Music size={40} />
+              </div>
+              <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                {INSTRUMENTS_LIST.find(i => i.id === soulAnalysis.instrument)?.name}
+              </h2>
+              <p style={{ opacity: 0.6, marginBottom: '2rem', fontSize: '0.9rem' }}>
+                Your soul instrument
+              </p>
+              <button onClick={handleStartWithSoul} className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+                <Radio size={20} /> Start Jamming
+              </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+              <button onClick={loginWithSpotify} className="btn-spotify">
+                <LogIn size={24} /> Connect with Spotify
+              </button>
+              <div style={{ marginTop: '2rem' }}>
+                <p style={{ fontSize: '0.875rem', opacity: 0.5, marginBottom: '1rem' }}>
+                  Or quick start with:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', maxWidth: '500px' }}>
+                  {INSTRUMENTS_LIST.slice(0, 4).map(inst => (
+                    <button key={inst.id} onClick={() => {
+                      setSoulAnalysis({ instrument: inst.id, topGenres: [], topArtists: [], topTracks: [], valence: 0.5, energy: 0.5 });
+                    }} className="instrument-card" style={{ padding: '1rem', textAlign: 'center' }}>
+                      <inst.icon size={24} style={{ margin: '0 auto 0.5rem', color: inst.color }} />
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{inst.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full flex-col md:flex-row relative">
-      {/* FORCE AUDIO OVERLAY */}
-      {!audioContextRunning && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black/90 z-[100] flex items-center justify-center">
-          <button onClick={forceAudioStart} className="px-12 py-8 bg-red-600 text-white font-black text-3xl rounded-2xl animate-bounce flex items-center gap-4">
-            <Volume2 size={48} /> TAP TO UNMUTE
+    <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', position: 'relative' }}>
+      {/* Mobile-aware flex direction: column on small, row on md+ (handled by media query in CSS naturally or inline styles) */}
+      <div style={{ display: 'flex', flex: 1, flexDirection: window.innerWidth > 768 ? 'row' : 'column', position: 'relative' }}>
+
+        {/* FORCE AUDIO OVERLAY */}
+        {!audioContextRunning && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'rgba(0,0,0,0.9)', zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <button onClick={forceAudioStart} className="btn-primary" style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <Volume2 size={32} /> TAP TO UNMUTE
+            </button>
+          </div>
+        )}
+
+        {/* DIAGNOSTICS TOGGLE */}
+        <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 60 }}>
+          <button onClick={() => setShowDiagnostics(!showDiagnostics)} style={{
+            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', padding: '0.5rem', color: 'white'
+          }}>
+            <Settings size={20} />
           </button>
         </div>
-      )}
 
-      {/* DIAGNOSTICS PANEL (Top Right) */}
-      <div className="fixed top-4 right-4 z-[60]">
-        <button onClick={() => setShowDiagnostics(!showDiagnostics)} className="p-2 bg-gray-800 rounded-full text-white opacity-50 hover:opacity-100">
-          <Settings size={20} />
-        </button>
-      </div>
+        {/* DIAGNOSTICS PANEL */}
+        {showDiagnostics && (
+          <div className="glass-panel" style={{
+            position: 'fixed', top: '4rem', right: '1rem', zIndex: 60,
+            padding: '1rem', fontSize: '0.75rem', fontFamily: 'monospace',
+            color: '#ef4444', border: '1px solid currentColor', width: '250px'
+          }}>
+            <h4 style={{ fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>DIAGNOSTICS</h4>
+            <div>Context: <span style={{ color: audioContextRunning ? '#22c55e' : '#ef4444' }}>{audioContextRunning ? 'RUNNING' : 'SUSPENDED'}</span></div>
+            <div>Transport: <span style={{ color: transportState === 'started' ? '#22c55e' : '#eab308' }}>{transportState}</span></div>
+            <div>Genre: {activeGenre}</div>
+            <div>Participants: {others.length + 1}</div>
 
-      {showDiagnostics && (
-        <div className="fixed top-16 right-4 z-[60] bg-black/90 border border-red-500 p-4 rounded text-xs font-mono w-64 text-red-400">
-          <h4 className="font-bold underline mb-2">AUDIO DIAGNOSTICS</h4>
-          <div>Context: <span className={audioContextRunning ? "text-green-500" : "text-red-500"}>{audioContextRunning ? 'RUNNING' : 'SUSPENDED'}</span></div>
-          <div>Transport: <span className={transportState === 'started' ? "text-green-500" : "text-yellow-500"}>{transportState}</span></div>
-          <div>Genre: {activeGenre}</div>
-          <div>Participants: {others.length + 1}</div>
-          <div className="mt-4 flex flex-col gap-2">
-            <button onClick={testBeep} className="bg-white text-black p-2 font-bold rounded hover:bg-gray-200">
-              🔊 TEST BEEP (RAW)
-            </button>
-            <button onClick={() => { Tone.Transport.stop(); Tone.Transport.start(); }} className="bg-blue-600 text-white p-2 rounded">
-              🔄 RESTART TRANSPORT
-            </button>
-            <button onClick={() => window.location.reload()} className="bg-red-900 text-white p-2 rounded">
-              ⚠️ RELOAD APP
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Sidebar */}
-      <div className="md:w-80 glass-panel m-4 p-4 flex flex-col z-50">
-        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Radio className="text-red-500 animate-pulse" /> Soul Radar
-        </h3>
-        <div className="space-y-3 overflow-y-auto max-h-[60vh]">
-          {/* My Instrument */}
-          <div className="p-3 glass-panel bg-white/5 flex items-center gap-3 border border-green-500/30">
-            <Music size={16} className="text-blue-400" />
-            <div className="flex flex-col">
-              <span className="text-sm font-bold">You ({myInstrument?.name})</span>
-              <span className="text-xs text-green-400">● Live</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+              <button onClick={testBeep} style={{ padding: '0.5rem', background: 'white', color: 'black', borderRadius: '4px', fontWeight: 'bold' }}>
+                🔊 TEST BEEP
+              </button>
+              <button onClick={() => { Tone.Transport.stop(); Tone.Transport.start(); }} style={{ padding: '0.5rem', background: '#2563eb', color: 'white', borderRadius: '4px' }}>
+                🔄 RESTART
+              </button>
+              <button onClick={() => window.location.reload()} style={{ padding: '0.5rem', background: '#7f1d1d', color: 'white', borderRadius: '4px' }}>
+                ⚠️ RELOAD
+              </button>
             </div>
           </div>
-          {/* Others */}
-          {others.map(u => (
-            <div key={u.id} className="p-3 glass-panel flex items-center gap-3">
-              <Music size={16} color={u.color} />
-              <div className="flex flex-col">
-                <span className="font-bold text-sm">Found: {INSTRUMENTS_LIST.find(i => i.id === u.instrument)?.name}</span>
+        )}
+
+        {/* SIDEBAR - SOUL RADAR */}
+        <div className="glass-panel" style={{
+          margin: '1rem', padding: '1.5rem',
+          width: window.innerWidth > 768 ? '320px' : 'calc(100% - 2rem)',
+          display: 'flex', flexDirection: 'column', zIndex: 50
+        }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Radio className="text-secondary pulse-glow" size={24} />
+            <span className="gradient-text">Soul Radar</span>
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', overflowY: 'auto', maxHeight: '60vh' }}>
+            {/* My Instrument */}
+            <div style={{
+              padding: '1rem', background: 'rgba(255,255,255,0.05)',
+              borderRadius: '12px', border: '1px solid rgba(34, 197, 94, 0.3)',
+              display: 'flex', alignItems: 'center', gap: '1rem'
+            }}>
+              <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}>
+                <Music size={16} color="#60a5fa" />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 600 }}>You ({myInstrument?.name})</span>
+                <span style={{ fontSize: '0.75rem', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', background: 'currentColor', borderRadius: '50%' }}></span> Live
+                </span>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Main Radar */}
-      <div className="flex-1 m-4 relative glass-panel overflow-hidden flex flex-col items-center justify-center">
-        <div className="radar-grid opacity-30 pointer-events-none absolute inset-0"></div>
-        <div className="z-10 text-center mb-10">
-          <h2 className="text-4xl md:text-6xl font-black tracking-widest uppercase text-white drop-shadow-lg animate-pulse">
-            {activeGenre}
-          </h2>
-          <div className="text-xl text-gray-400 mt-4">Ensemble Size: {others.length + 1}</div>
-        </div>
-        <div className="relative w-64 h-64 md:w-96 md:h-96 border-4 border-dashed border-white/20 rounded-full flex items-center justify-center mb-8">
-          <div className="absolute inset-0 rounded-full border border-blue-500/20 animate-ping"></div>
-          <div className="absolute w-24 h-24 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md z-20">
-            {myInstrument && <myInstrument.icon size={48} color={myInstrument.color} />}
+            {/* Others */}
+            {others.map(u => (
+              <div key={u.id} style={{
+                padding: '1rem', background: 'rgba(255,255,255,0.02)',
+                borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '1rem'
+              }}>
+                <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}>
+                  <Music size={16} color={u.color} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{INSTRUMENTS_LIST.find(i => i.id === u.instrument)?.name}</span>
+                </div>
+              </div>
+            ))}
+
+            {others.length === 0 && (
+              <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem', fontStyle: 'italic' }}>
+                Waiting for other souls...
+              </div>
+            )}
           </div>
-          {others.map((u, i) => {
-            const angle = (i / others.length) * 2 * Math.PI; const r = 140;
-            return <div key={u.id} className="absolute w-12 h-12 bg-black/50 border border-white/30 rounded-full flex items-center justify-center"
-              style={{ transform: `translate(${Math.cos(angle) * r}px, ${Math.sin(angle) * r}px)` }}><Music size={20} color={u.color} /></div>
-          })}
         </div>
 
-        {/* On-Screen Log */}
-        <div className="fixed bottom-0 left-0 w-full p-2 bg-black/90 text-[10px] text-left font-mono h-24 overflow-y-auto pointer-events-none opacity-50">
-          {debugLog.map((l, i) => <div key={i} className="text-green-400">{l}</div>)}
+        {/* MAIN RADAR VISUALIZATION */}
+        <div className="glass-panel" style={{
+          flex: 1, margin: '1rem', position: 'relative', overflow: 'hidden',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+        }}>
+          {/* Background Grid */}
+          <div style={{
+            position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}></div>
+
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 className="gradient-text pulse-glow" style={{
+              fontSize: 'clamp(2rem, 5vw, 4rem)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em'
+            }}>
+              {activeGenre}
+            </h2>
+            <div style={{ fontSize: '1.1rem', opacity: 0.7, marginTop: '1rem' }}>
+              Ensemble Size: {others.length + 1}
+            </div>
+          </div>
+
+          <div style={{
+            position: 'relative', width: '300px', height: '300px',
+            border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="radar-ping" style={{
+              position: 'absolute', inset: 0, border: '1px solid var(--primary)', borderRadius: '50%'
+            }}></div>
+
+            {/* My Centered Icon */}
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%',
+              background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 20, boxShadow: '0 0 30px rgba(99,102,241,0.3)'
+            }}>
+              {myInstrument && <myInstrument.icon size={40} color={myInstrument.color} />}
+            </div>
+
+            {/* Orbiting Users */}
+            {others.map((u, i) => {
+              const angle = (i / others.length) * 2 * Math.PI;
+              const r = 120; // Radius
+              const x = Math.cos(angle) * r;
+              const y = Math.sin(angle) * r;
+
+              return (
+                <div key={u.id} style={{
+                  position: 'absolute',
+                  width: '48px', height: '48px',
+                  background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transform: `translate(${x}px, ${y}px)`,
+                  transition: 'transform 1s ease-in-out'
+                }}>
+                  <Music size={20} color={u.color} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* On-Screen Log (Minimally intrusive) */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, width: '100%',
+            padding: '1rem', background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+            fontSize: '0.75rem', fontFamily: 'monospace', height: '100px',
+            overflowY: 'auto', pointerEvents: 'none', opacity: 0.6
+          }}>
+            {debugLog.map((l, i) => (
+              <div key={i} style={{ marginBottom: '2px' }}>
+                <span style={{ color: '#4ade80', marginRight: '8px' }}>➜</span>
+                {l.replace('ℹ️', '').replace('❌', '')}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
