@@ -55,8 +55,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// Serve index.html for all routes (SPA)
-app.get('*', (req, res) => {
+// Serve index.html for all routes (SPA) - must be after socket.io setup
+app.use((req, res) => {
     res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
