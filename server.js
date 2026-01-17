@@ -69,9 +69,8 @@ io.on('connection', (socket) => {
 
 // Serve index.html for all routes (SPA) - must be after socket.io setup
 // Serve index.html for all routes (SPA) - must be after socket.io setup
-// Explicit root handler to fail loudly if static files miss
-// Use '(.*)' to catch ALL routes in Express 5 (replaces *)
-app.get('(.*)', (req, res) => {
+// Serve index.html for all routes (SPA) - Express 4 compatible
+app.get('*', (req, res) => {
     const indexPath = join(__dirname, 'dist', 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
