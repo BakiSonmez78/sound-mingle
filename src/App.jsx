@@ -40,6 +40,9 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     if (code) {
+      // Clean URL immediately to prevent re-processing
+      window.history.replaceState({}, document.title, '/');
+
       setLoading(true);
       handleCallback().then(() => analyzeSoulInstrument()).then(analysis => {
         setSoulAnalysis(analysis);
@@ -154,6 +157,13 @@ function App() {
       setScanning(false);
       try {
         await audioEngine.init();
+
+        // Apply Spotify Music Profile (Valence & Energy)
+        if (soulAnalysis) {
+          audioEngine.setMusicProfile(soulAnalysis.valence, soulAnalysis.energy);
+          console.log(`🎭 Applied Soul Profile: Valence=${soulAnalysis.valence.toFixed(2)}, Energy=${soulAnalysis.energy.toFixed(2)}`);
+        }
+
         // audioEngine.startOrchestra(); // Handled by updateSession loop now
         // Force start transport just in case
         Tone.Transport.start();
