@@ -19,8 +19,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "soundfont-player": "^0.12.0",
-    "tone": "^15.1.22",
-    "@google/magenta": "^1.23.1"
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
