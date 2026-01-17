@@ -40,19 +40,30 @@ function App() {
     // Spotify Callback Handling
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-    if (code) {
-      // Clean URL immediately to prevent re-processing
-      window.history.replaceState({}, document.title, '/');
 
+    if (code) {
+      console.log('🔐 Detected Spotify callback with code');
       setLoading(true);
-      handleCallback().then(() => analyzeSoulInstrument()).then(analysis => {
-        setSoulAnalysis(analysis);
-        setLoading(false);
-      }).catch(err => {
-        console.error("❌ Spotify Login Failed:", err);
-        setSpotifyError(err.message || 'Failed to connect to Spotify');
-        setLoading(false);
-      });
+
+      handleCallback()
+        .then(() => {
+          console.log('✅ Token exchange successful, analyzing music...');
+          return analyzeSoulInstrument();
+        })
+        .then(analysis => {
+          console.log('✅ Soul analysis complete:', analysis);
+          setSoulAnalysis(analysis);
+          setLoading(false);
+          // Clean URL AFTER everything succeeds
+          window.history.replaceState({}, document.title, '/');
+        })
+        .catch(err => {
+          console.error("❌ Spotify Login Failed:", err);
+          setSpotifyError(err.message || 'Failed to connect to Spotify');
+          setLoading(false);
+          // Clean URL even on error
+          window.history.replaceState({}, document.title, '/');
+        });
     }
 
     // Audio State Polling
