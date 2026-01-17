@@ -320,14 +320,16 @@ function App() {
                 <p style={{ fontSize: '0.875rem', opacity: 0.5, marginBottom: '1rem' }}>
                   Or quick start with:
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', maxWidth: '600px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', maxWidth: '700px' }}>
                   {[
                     INSTRUMENTS_LIST.find(i => i.id === 'classical_guitar'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'synth_bass'),
                     INSTRUMENTS_LIST.find(i => i.id === 'piano'),
                     INSTRUMENTS_LIST.find(i => i.id === 'saxophone'),
                     INSTRUMENTS_LIST.find(i => i.id === 'trumpet'),
                     INSTRUMENTS_LIST.find(i => i.id === 'violin'),
-                    INSTRUMENTS_LIST.find(i => i.id === 'jazz_drums')
+                    INSTRUMENTS_LIST.find(i => i.id === 'jazz_drums'),
+                    INSTRUMENTS_LIST.find(i => i.id === 'congas')
                   ].filter(Boolean).map(inst => (
                     <button key={inst.id} onClick={() => {
                       setSoulAnalysis({ instrument: inst.id, topGenres: [], topArtists: [], topTracks: [], valence: 0.5, energy: 0.5 });
