@@ -363,3 +363,43 @@ export const logout = () => {
     localStorage.removeItem('spotify_code_verifier');
     localStorage.removeItem('spotify_auth_state');
 };
+
+// Get recently played tracks
+export const getRecentlyPlayed = async () => {
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+        throw new Error('Not logged in');
+    }
+
+    try {
+        const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch recently played');
+        }
+
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+            const track = data.items[0].track;
+            console.log('🎵 Recently played:', track.name, 'by', track.artists[0].name);
+
+            return {
+                name: track.name,
+                artist: track.artists[0].name,
+                previewUrl: track.preview_url,
+                albumArt: track.album.images[0]?.url,
+                uri: track.uri
+            };
+        }
+
+        return null;
+    } catch (error) {
+        console.error('❌ Failed to get recently played:', error);
+        return null;
+    }
+};

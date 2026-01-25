@@ -4,7 +4,7 @@ import * as Tone from 'tone';
 import { io } from 'socket.io-client';
 import { audioEngine } from './audio/engine';
 import { stemSeparator } from './audio/stemSeparator';
-import { loginWithSpotify, handleCallback, analyzeSoulInstrument, isLoggedIn } from './spotify';
+import { loginWithSpotify, handleCallback, analyzeSoulInstrument, isLoggedIn, getRecentlyPlayed } from './spotify';
 
 const INSTRUMENTS_LIST = [
   // Strings
@@ -344,13 +344,28 @@ function App() {
 
               {soulAnalysis.topTracks && soulAnalysis.topTracks.length > 0 && (
                 <button
-                  onClick={() => {
-                    const previewUrl = soulAnalysis.topTracks[0].preview_url;
-                    if (previewUrl) {
-                      startCollaborativeMode(previewUrl);
-                      handleStartWithSoul(); // Also start the UI
-                    } else {
-                      alert('No preview available for this track');
+                  onClick={async () => {
+                    try {
+                      // Get recently played track
+                      const recentTrack = await getRecentlyPlayed();
+
+                      if (recentTrack && recentTrack.previewUrl) {
+                        console.log('🎵 Starting collaborative mode with:', recentTrack.name);
+                        await startCollaborativeMode(recentTrack.previewUrl);
+                        handleStartWithSoul(); // Also start the UI
+                      } else {
+                        // Fallback to top tracks if no recent track
+                        const previewUrl = soulAnalysis.topTracks?.[0]?.preview_url;
+                        if (previewUrl) {
+                          await startCollaborativeMode(previewUrl);
+                          handleStartWithSoul();
+                        } else {
+                          alert('No preview available. Please play a song on Spotify first!');
+                        }
+                      }
+                    } catch (error) {
+                      console.error('❌ Collaborative mode error:', error);
+                      alert('Failed to start collaborative mode. Please try again.');
                     }
                   }}
                   className="btn-secondary"
