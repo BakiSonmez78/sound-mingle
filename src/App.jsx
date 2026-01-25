@@ -83,9 +83,38 @@ function App() {
           console.log('✅ Token exchange successful, analyzing music...');
           return analyzeSoulInstrument();
         })
-        .then(analysis => {
+        .then(async (analysis) => {
           console.log('✅ Soul analysis complete:', analysis);
           setSoulAnalysis(analysis);
+
+          // Auto-start collaborative mode with recently played track
+          try {
+            const recentTrack = await getRecentlyPlayed();
+            if (recentTrack && recentTrack.previewUrl) {
+              console.log('🎵 Auto-starting collaborative mode with:', recentTrack.name);
+              setTrackUrl(recentTrack.previewUrl);
+              setCollaborativeMode(true);
+
+              // Load audio into stem separator
+              await stemSeparator.loadAudio(recentTrack.previewUrl);
+
+              // Auto-assign stem (bass for first user)
+              const assignedStem = STEM_TYPES[0];
+              setMyStem(assignedStem.id);
+
+              console.log(`🎵 Auto-assigned stem: ${assignedStem.name}`);
+
+              // Auto-start playback after a short delay
+              setTimeout(() => {
+                handleStartWithSoul();
+                // Start playing the stem
+                stemSeparator.playStem(assignedStem.id);
+              }, 1000);
+            }
+          } catch (error) {
+            console.warn('⚠️ Could not auto-start collaborative mode:', error);
+          }
+
           setLoading(false);
           // Clean URL AFTER everything succeeds
           window.history.replaceState({}, document.title, '/');
