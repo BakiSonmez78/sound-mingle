@@ -3,6 +3,7 @@ import { Music, Disc, Zap, Activity, Users, RefreshCw, Bluetooth, Radio, LogIn, 
 import * as Tone from 'tone';
 import { io } from 'socket.io-client';
 import { audioEngine } from './audio/engine';
+import { stemSeparator } from './audio/stemSeparator';
 import { loginWithSpotify, handleCallback, analyzeSoulInstrument, isLoggedIn } from './spotify';
 
 const INSTRUMENTS_LIST = [
@@ -34,6 +35,14 @@ const INSTRUMENTS_LIST = [
   { id: 'bongos', name: 'Bongos', icon: Disc, color: '#eab308' },
 ];
 
+// Stem types for collaborative playback
+const STEM_TYPES = [
+  { id: 'bass', name: 'Bass', color: '#ef4444' },
+  { id: 'drums', name: 'Drums', color: '#10b981' },
+  { id: 'vocals', name: 'Vocals', color: '#ec4899' },
+  { id: 'other', name: 'Other', color: '#3b82f6' }
+];
+
 const socket = io('/', { autoConnect: false });
 
 function App() {
@@ -47,6 +56,11 @@ function App() {
   const [debugLog, setDebugLog] = useState([]);
   const [soulAnalysis, setSoulAnalysis] = useState(null);
   const [spotifyError, setSpotifyError] = useState(null);
+
+  // Collaborative playback states
+  const [collaborativeMode, setCollaborativeMode] = useState(false);
+  const [myStem, setMyStem] = useState(null);
+  const [trackUrl, setTrackUrl] = useState(null);
 
   // Audio Diagnostics State
   const [audioContextRunning, setAudioContextRunning] = useState(false);
@@ -214,6 +228,48 @@ function App() {
     }, 2000);
   };
 
+  // Collaborative Playback Functions
+  const startCollaborativeMode = async (spotifyTrackUrl) => {
+    setCollaborativeMode(true);
+    setTrackUrl(spotifyTrackUrl);
+
+    // Load audio into stem separator
+    const loaded = await stemSeparator.loadAudio(spotifyTrackUrl);
+    if (!loaded) {
+      console.error('❌ Failed to load track for collaborative mode');
+      return;
+    }
+
+    // Auto-assign stem based on number of users
+    const availableStems = STEM_TYPES;
+    const userCount = others.length + 1; // +1 for self
+    const assignedStem = availableStems[userCount % availableStems.length];
+
+    setMyStem(assignedStem.id);
+
+    // Notify other users
+    socket.emit('collaborative_join', {
+      stem: assignedStem.id,
+      trackUrl: spotifyTrackUrl
+    });
+
+    console.log(`🎵 Collaborative mode: Playing ${assignedStem.name}`);
+  };
+
+  const syncPlay = (startTimeMs) => {
+    if (!myStem || !trackUrl) return;
+
+    // Calculate exact start time
+    const now = Tone.now();
+    const delay = (startTimeMs - Date.now()) / 1000;
+    const startTime = now + Math.max(0, delay);
+
+    // Play only my stem
+    stemSeparator.playStem(myStem, startTime);
+
+    console.log(`🎵 Synced playback: ${myStem} at ${startTime}`);
+  };
+
   if (!started) {
     return (
       <div style={{
@@ -282,9 +338,35 @@ function App() {
               <p style={{ opacity: 0.6, marginBottom: '2rem', fontSize: '0.9rem' }}>
                 Your soul instrument
               </p>
-              <button onClick={handleStartWithSoul} className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+              <button onClick={handleStartWithSoul} className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                 <Radio size={20} /> Start Jamming
               </button>
+
+              {soulAnalysis.topTracks && soulAnalysis.topTracks.length > 0 && (
+                <button
+                  onClick={() => {
+                    const previewUrl = soulAnalysis.topTracks[0].preview_url;
+                    if (previewUrl) {
+                      startCollaborativeMode(previewUrl);
+                      handleStartWithSoul(); // Also start the UI
+                    } else {
+                      alert('No preview available for this track');
+                    }
+                  }}
+                  className="btn-secondary"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem',
+                    background: 'rgba(236, 72, 153, 0.1)',
+                    border: '1px solid rgba(236, 72, 153, 0.3)'
+                  }}
+                >
+                  <Users size={20} /> Collaborative Mode
+                </button>
+              )}
             </div>
           ) : (
             <div className="slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
@@ -425,6 +507,11 @@ function App() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600 }}>You ({myInstrument?.name})</span>
+                {collaborativeMode && myStem && (
+                  <span style={{ fontSize: '0.7rem', color: STEM_TYPES.find(s => s.id === myStem)?.color, marginTop: '2px' }}>
+                    🎵 {STEM_TYPES.find(s => s.id === myStem)?.name}
+                  </span>
+                )}
                 <span style={{ fontSize: '0.75rem', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ width: '6px', height: '6px', background: 'currentColor', borderRadius: '50%' }}></span> Live
                 </span>
